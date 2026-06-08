@@ -1,1 +1,25 @@
-/target
+# builds
+
+result
+target
+
+**/debug/*
+**/result/*
+**/target/*
+
+# ide
+
+*.code-workspace
+.devcontainer
+.idea
+.vscode
+.zed
+
+# runtime
+
+.envrc
+.direnv/
+
+# temporary files
+
+.temp
