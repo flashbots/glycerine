@@ -20,10 +20,22 @@ Harness for networking and persistent storage in AWS Nitro Enclaves.
     make run-proxy-host
     ```
 
-4. SSH into the enclave
+4. SSH into the enclave & iterate
 
     ```bash
     ssh root@<host-public-ip> -p 10022
+
+    # install rust
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    . "$HOME/.cargo/env"
+
+    # clone repo
+    cd /usr/src
+    git clone https://github.com/flashbots/glycerine.git
+    cd glycerine
+
+    # build
+    cargo build
     ```
 
 ## Networking
