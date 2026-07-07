@@ -1,0 +1,29 @@
+[package]
+name = "glycerine"
+version = "0.0.1"
+edition = "2024"
+
+[[bin]]
+name = "glycerine"
+path = "src/bin/main.rs"
+
+[dependencies]
+backoff = { version = "0.4.0", default-features = false }
+clap = { version = "4.6.1", features = ["derive", "env", "string", "wrap_help"] }
+futures = { version = "0.3.32", default-features = false }
+futures-util = { version = "0.3.32", default-features = false, features = ["alloc"] }
+libc = { version = "0.2.186", default-features = false }
+mnl = { version = "0.3.1", default-features = false }
+nfq = { git = "https://github.com/nbdd0121/nfq-rs.git", rev = "fc838b4d8e4dcade5324cf1719a4f05122754019", default-features = false }
+nftnl = { version = "0.9.2", default-features = false }
+nix = { version = "0.31.3", default-features = false, features = ["ioctl", "socket"] }
+pnet = { version = "0.35.0", default-features = false, features = ["std"] }
+rtnetlink = { version = "0.21.0", default-features = false, features = ["tokio_socket"] }
+serde = { version = "1.0.228", default-features = false, features = ["derive"] }
+serde_json = { version = "1.0.150", default-features = false }
+socket2 = { version = "0.6.4", default-features = false, features = ["all"] }
+thiserror = { version = "2.0.18", default-features = false }
+tokio = { version = "1.52.3", features = ["macros", "rt-multi-thread", "signal", "time"] }
+tokio-util = { version = "0.7.18", default-features = false }
+tracing = { version = "0.1.44", default-features = false }
+tracing-subscriber = { version = "0.3.23", default-features = false, features = ["ansi", "env-filter", "fmt", "json", "std"] }
