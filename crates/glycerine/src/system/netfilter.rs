@@ -172,7 +172,7 @@ pub(crate) fn add_egress_netfilter_packets_sink(
 
             // protocol
             rule.add_expr(&nft_expr!(meta l4proto));
-            rule.add_expr(&nft_expr!(cmp == protocol));
+            rule.add_expr(&nft_expr!(cmp == protocol as u8));
 
             // source address
             rule.add_expr(&nft_expr!(payload ipv4 saddr));
