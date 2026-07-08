@@ -140,7 +140,7 @@ impl VsockToIpv4 {
                         service = SERVICE,
                         error = &err.to_string(),
                         listen_address = display_sock_addr(&self.cfg.listen_address),
-                        "Failed to read a message from vsock connection",
+                        "Failed to read a packet from vsock connection",
                     )
                 })
                 .map_err(Error::IoVsock)?;
@@ -159,7 +159,7 @@ impl VsockToIpv4 {
                         service = SERVICE,
                         error = &err.to_string(),
                         listen_address = display_sock_addr(&self.cfg.listen_address),
-                        "Failed to read a message from vsock connection",
+                        "Failed to read a packet from vsock connection",
                     )
                 })
                 .map_err(Error::IoVsock)?;
@@ -167,13 +167,21 @@ impl VsockToIpv4 {
             let dst_ipv4_socket = match protocol {
                 Protocol::TCP => &dst_ipv4_tcp_socket,
                 Protocol::UDP => &dst_ipv4_udp_socket,
-                _ => unreachable!(),
+                _ => {
+                    warn!(
+                        service = SERVICE,
+                        protocol = ?protocol,
+                        listen_address = display_sock_addr(&self.cfg.listen_address),
+                        "Received a packet for unsupported protocol",
+                    );
+                    continue;
+                }
             };
 
             let err_wrapper = match protocol {
                 Protocol::TCP => |err: io::Error| Error::IoIpv4Tcp(err),
                 Protocol::UDP => |err: io::Error| Error::IoIpv4Udp(err),
-                _ => unreachable!(),
+                _ => unreachable!(), // safety: already checked above
             };
 
             let mut sent = 0;

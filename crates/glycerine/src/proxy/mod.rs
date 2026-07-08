@@ -1,3 +1,5 @@
+use socket2::Protocol;
+
 pub mod enclave;
 pub mod host;
 
@@ -51,6 +53,9 @@ pub enum Error {
 
     #[error("netlink: {0}")]
     Rtnetlink(#[source] rtnetlink::Error),
+
+    #[error("unsupported-protocol: {0:?}")]
+    UnsupportedProtocol(Protocol),
 }
 
 impl Error {

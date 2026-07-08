@@ -38,17 +38,18 @@ pub(crate) fn add_ingress_netfilter_packets_sink(
     dst_port_ranges: &[(u16, u16)],
 ) -> Result<bool, Error> {
     let table_cstr = match protocol {
-        Protocol::TCP => CString::new(format!("glycerine-tcp-{queue_num}")),
-        Protocol::UDP => CString::new(format!("glycerine-udp-{queue_num}")),
-        Protocol::ICMPV4 => CString::new(format!("glycerine-icmp-{queue_num}")),
-        _ => unreachable!(),
-    }
+        Protocol::TCP => Ok(CString::new(format!("glycerine-tcp-{queue_num}"))),
+        Protocol::UDP => Ok(CString::new(format!("glycerine-udp-{queue_num}"))),
+        _ => Err(Error::UnsupportedProtocol(protocol)),
+    }?
     .map_err(Error::CStringNulError)?;
 
-    /* TODO: enable when/if we can check the configuration of the table too
-        if get_tables().map_err(Error::IoNftnl)?.contains(&table_cstr) {
-            return Ok(false); // such table already exists => didn't add
-        };
+    /*
+    TODO: when/if we can check the configuration of the table too:
+
+    if get_tables().map_err(Error::IoNftnl)?.contains(&table_cstr) {
+        return Ok(false); // such table already exists => didn't add
+    };
     */
 
     let interface_cstr = CString::new(interface).map_err(Error::CStringNulError)?;
@@ -56,8 +57,7 @@ pub(crate) fn add_ingress_netfilter_packets_sink(
     let protocol = match protocol {
         Protocol::TCP => Ok(libc::IPPROTO_TCP),
         Protocol::UDP => Ok(libc::IPPROTO_UDP),
-        Protocol::ICMPV4 => Ok(libc::IPPROTO_ICMP),
-        _ => unreachable!(),
+        _ => unreachable!(), // safety: already checked above
     }
     .map_err(Error::IoNftnl)?;
 
@@ -88,9 +88,9 @@ pub(crate) fn add_ingress_netfilter_packets_sink(
             rule.add_expr(&nft_expr!(meta l4proto));
             rule.add_expr(&nft_expr!(cmp == protocol as u8));
 
+            // protocol + destination ports
             match protocol {
                 libc::IPPROTO_TCP => {
-                    // destination port
                     rule.add_expr(&nft_expr!(payload tcp dport));
                     rule.add_expr(&nftnl::expr::Cmp::new(
                         nftnl::expr::CmpOp::Gte,
@@ -104,7 +104,6 @@ pub(crate) fn add_ingress_netfilter_packets_sink(
                 }
 
                 libc::IPPROTO_UDP => {
-                    // destination port
                     rule.add_expr(&nft_expr!(payload udp dport));
                     rule.add_expr(&nftnl::expr::Cmp::new(
                         nftnl::expr::CmpOp::Gte,
@@ -117,14 +116,10 @@ pub(crate) fn add_ingress_netfilter_packets_sink(
                     ));
                 }
 
-                libc::IPPROTO_ICMP => {
-                    // no ports in icmp
-                }
-
-                _ => unreachable!(),
+                _ => unreachable!(), // safety: caller only uses tcp & udp
             }
 
-            // queue number
+            // destination queue number
             rule.add_expr(&NfQueue { num: queue_num });
 
             batch.add(&rule, MsgType::Add);
@@ -143,16 +138,16 @@ pub(crate) fn add_egress_netfilter_packets_sink(
     src_port_ranges: &[(u16, u16)],
 ) -> Result<bool, Error> {
     let table_cstr = match protocol {
-        Protocol::TCP => CString::new(format!("glycerine-tcp-{queue_num}")),
-        Protocol::UDP => CString::new(format!("glycerine-udp-{queue_num}")),
-        _ => unreachable!(),
-    }
+        Protocol::TCP => Ok(CString::new(format!("glycerine-tcp-{queue_num}"))),
+        Protocol::UDP => Ok(CString::new(format!("glycerine-udp-{queue_num}"))),
+        _ => Err(Error::UnsupportedProtocol(protocol)),
+    }?
     .map_err(Error::CStringNulError)?;
 
     let protocol = match protocol {
         Protocol::TCP => Ok(libc::IPPROTO_TCP),
         Protocol::UDP => Ok(libc::IPPROTO_UDP),
-        _ => unreachable!(),
+        _ => unreachable!(), // safety: already checked above
     }
     .map_err(Error::IoNftnl)?;
 
@@ -183,9 +178,9 @@ pub(crate) fn add_egress_netfilter_packets_sink(
             rule.add_expr(&nft_expr!(payload ipv4 saddr));
             rule.add_expr(&nft_expr!(cmp == src_address));
 
+            // protocol + source port
             match protocol {
                 libc::IPPROTO_TCP => {
-                    // source port
                     rule.add_expr(&nft_expr!(payload tcp sport));
                     rule.add_expr(&nftnl::expr::Cmp::new(
                         nftnl::expr::CmpOp::Gte,
@@ -199,7 +194,6 @@ pub(crate) fn add_egress_netfilter_packets_sink(
                 }
 
                 libc::IPPROTO_UDP => {
-                    // source port
                     rule.add_expr(&nft_expr!(payload udp sport));
                     rule.add_expr(&nftnl::expr::Cmp::new(
                         nftnl::expr::CmpOp::Gte,
@@ -212,7 +206,7 @@ pub(crate) fn add_egress_netfilter_packets_sink(
                     ));
                 }
 
-                _ => unreachable!(),
+                _ => unreachable!(), // safety: already checked above
             }
 
             // queue number
