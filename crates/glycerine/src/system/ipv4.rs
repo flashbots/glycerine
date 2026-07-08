@@ -20,12 +20,16 @@ pub(crate) fn get_interface_address(interface: &str) -> Result<String, Error> {
     Ok(datalink::interfaces()
         .iter()
         .find(|iface| iface.name == interface)
-        .ok_or_else(|| Error::IoIpv4Tcp(io::Error::other("unknown interface: {interface}")))?
+        .ok_or_else(|| {
+            Error::IoIpv4Tcp(io::Error::other(format!("unknown interface: {interface}")))
+        })?
         .ips
         .iter()
         .find(|addr| addr.is_ipv4())
         .ok_or_else(|| {
-            Error::IoIpv4Tcp(io::Error::other("interface has no ipv4 address: {interface}"))
+            Error::IoIpv4Tcp(io::Error::other(format!(
+                "interface has no ipv4 address: {interface}"
+            )))
         })?
         .to_string())
 }

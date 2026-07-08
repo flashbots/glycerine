@@ -256,7 +256,7 @@ pub(crate) fn new_queue(service: &'static str, queue_num: u16) -> Result<Queue, 
                 error = &err.to_string(),
                 service = service,
                 queue_num = queue_num,
-                "Failed to unset NETLINK_NO_ENOBUFS on a netfilter queue"
+                "Failed to enable ENOBUFS reporting"
             )
         })
         .map_err(Error::IoNfq)?;
