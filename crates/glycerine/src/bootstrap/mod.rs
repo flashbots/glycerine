@@ -81,7 +81,7 @@ impl Bootstrap {
             shutdown(SERVICE, &socket, std::net::Shutdown::Read)?;
 
             socket
-                .set_write_timeout(Some(Duration::from_millis(200)))
+                .set_write_timeout(Some(Duration::from_millis(1000)))
                 .inspect_err(|err| {
                     error!(
                         service = SERVICE,
@@ -283,7 +283,7 @@ pub(crate) fn get_record(
         .map_err(Error::IoVsock)?;
 
     bootstrap_socket
-        .set_read_timeout(Some(Duration::from_millis(200)))
+        .set_read_timeout(Some(Duration::from_millis(1000)))
         .inspect_err(|err| {
             error!(
                 service = SERVICE,
