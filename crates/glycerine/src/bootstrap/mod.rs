@@ -30,6 +30,7 @@ use crate::{
 // ---------------------------------------------------------------------
 
 const SERVICE: &str = "bootstrap";
+const MAX_RECORD_SIZE: usize = 1 << 20; // 1Mb
 
 // Bootstrap -----------------------------------------------------------
 
@@ -306,6 +307,19 @@ pub(crate) fn get_record(
     let mut read = 0;
 
     while !shutdown_signal.is_cancelled() {
+        // ensure there's always room to read into; otherwise a full
+        // buffer makes read() return Ok(0), which is indistinguishable
+        // from a genuine EOF and would silently truncate the record
+        if read == buf.len() {
+            if buf.len() >= MAX_RECORD_SIZE {
+                return Err(Error::IoVsock(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "bootstrap record exceeds maximum size",
+                )));
+            }
+            buf.resize((buf.len() * 2).min(MAX_RECORD_SIZE), 0);
+        }
+
         let count = bootstrap_socket
             .read(&mut buf[read..])
             .inspect_err(|err| {
@@ -318,10 +332,11 @@ pub(crate) fn get_record(
                 );
             })
             .map_err(Error::IoVsock)?;
+
         if count == 0 {
-            break;
+            break; // real EOF: peer half-closed after sending the full record
         }
-        read += count
+        read += count;
     }
 
     serde_json::from_slice(&buf[..read])
