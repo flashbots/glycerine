@@ -1,6 +1,5 @@
 use std::{
     io::{Read, Write},
-    net::Shutdown,
     sync::Arc,
     time::Duration,
 };
@@ -294,9 +293,6 @@ pub(crate) fn get_record(
             )
         })
         .map_err(Error::IoVsock)?;
-
-    // we will only be reading data from this socket => let's half-close
-    shutdown(SERVICE, &bootstrap_socket, Shutdown::Write)?;
 
     let mut buf = vec![0u8; 4096];
     let mut read = 0;
