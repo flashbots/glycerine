@@ -40,11 +40,8 @@ pub async fn run(
     backoff: ExponentialBackoff,
     shutdown_signal: CancellationToken,
 ) -> Result<Vec<JoinHandle<Result<(), Error>>>, Error> {
-    let bootstrap = bootstrap::get_record(
-        &cfg.bootstrap_vsock_address,
-        shutdown_signal.clone(),
-        backoff.clone(),
-    )?;
+    let bootstrap =
+        bootstrap::get(&cfg.bootstrap_vsock_address, shutdown_signal.clone(), backoff.clone())?;
 
     setup(cfg, &bootstrap).await?;
 

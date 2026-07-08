@@ -38,12 +38,12 @@ pub(crate) struct Bootstrap {
     listen_address: SockAddr,
     peer_cid: u32,
     backoff: ExponentialBackoff,
-    record: Arc<Bytes>,
+    info: Arc<Bytes>,
 }
 
 impl Bootstrap {
     pub fn new(cfg: &CliHost, backoff: ExponentialBackoff) -> Result<Self, Error> {
-        let record = Arc::new(Bytes::from_owner(
+        let info = Arc::new(Bytes::from_owner(
             serde_json::to_string(&Record::new(cfg)?).map_err(Error::Json)?,
         ));
 
@@ -52,7 +52,7 @@ impl Bootstrap {
             .as_vsock_address()
             .expect("ingress_vsock_address is always a vsock address");
 
-        Ok(Self { listen_address: cfg.bootstrap_vsock_address.clone(), peer_cid, backoff, record })
+        Ok(Self { listen_address: cfg.bootstrap_vsock_address.clone(), peer_cid, backoff, info })
     }
 
     pub fn run(&self, shutdown_signal: CancellationToken) -> Result<(), Error> {
@@ -126,13 +126,13 @@ impl Bootstrap {
             service = SERVICE,
             peer_address = display_sock_addr(peer_address),
             listen_address = display_sock_addr(&self.listen_address),
-            bytes = self.record.len(),
+            bytes = self.info.len(),
             "Sending bootstrap info...",
         );
 
         let mut pos: usize = 0;
 
-        while pos < self.record.len() && !shutdown_signal.is_cancelled() {
+        while pos < self.info.len() && !shutdown_signal.is_cancelled() {
             pos += socket
                 .write(&self.info[pos..])
                 .and_then(|wrote| {
@@ -257,7 +257,7 @@ pub(crate) struct RecordPortRange {
 
 // utils ---------------------------------------------------------------
 
-pub(crate) fn get_record(
+pub(crate) fn get(
     bootstrap_address: &SockAddr,
     shutdown_signal: CancellationToken,
     backoff: ExponentialBackoff,
