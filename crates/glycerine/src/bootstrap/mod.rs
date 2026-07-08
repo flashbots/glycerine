@@ -1,4 +1,5 @@
 use std::{
+    io,
     io::{Read, Write},
     sync::Arc,
     time::Duration,
@@ -132,7 +133,14 @@ impl Bootstrap {
 
         while pos < self.record.len() && !shutdown_signal.is_cancelled() {
             pos += socket
-                .write(&self.record[pos..])
+                .write(&self.info[pos..])
+                .and_then(|wrote| {
+                    if wrote > 0 {
+                        Ok(wrote)
+                    } else {
+                        Err(io::Error::new(io::ErrorKind::WriteZero, "wrote zero bytes"))
+                    }
+                })
                 .inspect_err(|err| {
                     warn!(
                         service = SERVICE,

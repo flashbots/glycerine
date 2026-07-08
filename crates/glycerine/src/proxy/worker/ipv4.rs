@@ -180,6 +180,13 @@ impl VsockToIpv4 {
             while sent < payload_size {
                 sent += dst_ipv4_socket
                     .send_to(&payload[sent..payload_size], &self.cfg.ipv4_sink_address)
+                    .and_then(|sent| {
+                        if sent > 0 {
+                            Ok(sent)
+                        } else {
+                            Err(io::Error::new(io::ErrorKind::WriteZero, "sent zero bytes"))
+                        }
+                    })
                     .inspect_err(|err| {
                         warn!(
                             service = SERVICE,

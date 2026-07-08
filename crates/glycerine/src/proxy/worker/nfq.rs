@@ -1,4 +1,4 @@
-use std::net::Shutdown;
+use std::{io, net::Shutdown};
 
 use backoff::ExponentialBackoff;
 use tokio_util::sync::CancellationToken;
@@ -124,6 +124,13 @@ impl NfqToVsock {
             while sent < payload_size {
                 sent += dst_vsock_socket
                     .send(&payload[sent..payload_size])
+                    .and_then(|sent| {
+                        if sent > 0 {
+                            Ok(sent)
+                        } else {
+                            Err(io::Error::new(io::ErrorKind::WriteZero, "sent zero bytes"))
+                        }
+                    })
                     .inspect_err(|err| {
                         warn!(
                             service = SERVICE,
