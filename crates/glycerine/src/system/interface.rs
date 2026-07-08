@@ -50,10 +50,12 @@ pub(crate) async fn ensure_default_ipv4_route(
             .route()
             .get(RouteMessageBuilder::<Ipv4Addr>::new().output_interface(interface).build())
             .execute();
-        while let Some(route) = routes.try_next().await.map_err(Error::Rtnetlink)? &&
-            route.header.table == libc::RT_TABLE_MAIN &&
-            route.header.destination_prefix_length == 0
-        {
+        while let Some(route) = routes.try_next().await.map_err(Error::Rtnetlink)? {
+            if route.header.table != libc::RT_TABLE_MAIN ||
+                route.header.destination_prefix_length != 0
+            {
+                continue;
+            }
             debug!(
                 table = route.header.table,
                 scope = ?route.header.scope,
