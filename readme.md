@@ -1,8 +1,8 @@
 # Glycerine
 
-Harness for networking and persistent storage in AWS Nitro Enclaves.
+Harness for networking in AWS Nitro Enclaves.
 
-## Run develoment nitro enclave
+## Run development nitro enclave
 
 0. Launch nitro-enabled VM instance in AWS.
 

@@ -95,6 +95,7 @@
         "tcpflow",
         "TCPOPT",
         "thiserror",
+        "tlsv",
         "tmpfs",
         "trimpath",
         "uninlined",
