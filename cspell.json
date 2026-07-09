@@ -79,6 +79,7 @@
         "rootfs",
         "rtnetlink",
         "rustc",
+        "rustup",
         "saddr",
         "sendto",
         "seqs",

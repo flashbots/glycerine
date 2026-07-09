@@ -1,3 +1,5 @@
+use std::net;
+
 use clap::{ArgAction, Args};
 use socket2::SockAddr;
 
@@ -152,4 +154,24 @@ pub struct CliHost {
         value_parser = Ipv4AddressParser{},
     )]
     pub(crate) egress_ipv4_sink_address: SockAddr,
+}
+
+impl Default for CliHost {
+    fn default() -> Self {
+        Self {
+            interface: get_default_network_interface().unwrap_or_default(),
+            enclave_ports: vec![],
+            enclave_ephemeral_ports: (40000, 60999),
+            host_ephemeral_ports: (32768, 39999),
+            bootstrap_vsock_address: socket2::SockAddr::vsock(3, 4000),
+            setup_only: false,
+            ingress_netfilter_queue_num: 0,
+            ingress_vsock_address: socket2::SockAddr::vsock(4, 8000),
+            egress_vsock_address: socket2::SockAddr::vsock(3, 8000),
+            egress_ipv4_sink_address: SockAddr::from(net::SocketAddr::from((
+                net::Ipv4Addr::new(1, 1, 1, 1),
+                1111,
+            ))),
+        }
+    }
 }

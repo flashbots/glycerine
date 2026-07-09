@@ -197,3 +197,66 @@ fn ensure_no_port_overlaps(cfg: &CliHost) -> Result<(), Error> {
 
     Ok(())
 }
+
+// Tests ---------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn assert_invalid_config(cfg: CliHost, expected_message: &'static str) {
+        let Err(Error::GlycerineInvalidConfig(message)) = ensure_no_port_overlaps(&cfg) else {
+            panic!("expected invalid config error");
+        };
+
+        assert_eq!(message, expected_message);
+    }
+
+    #[test]
+    fn ensure_no_port_overlaps_accepts_non_overlapping_ports() {
+        let cfg = CliHost {
+            host_ephemeral_ports: (32768, 39999),
+            enclave_ephemeral_ports: (40000, 60999),
+            enclave_ports: vec![(80, 80), (443, 443), (10000, 20000), (61000, 62000)],
+            ..Default::default()
+        };
+
+        assert!(ensure_no_port_overlaps(&cfg).is_ok());
+    }
+
+    #[test]
+    fn ensure_no_port_overlaps_rejects_enclave_ephemeral_ports_overlapping_host_ephemeral_ports() {
+        for enclave_ephemeral_ports in
+            [(32768, 32768), (32767, 32768), (33000, 34000), (39999, 40000), (39999, 39999)]
+        {
+            let cfg = CliHost {
+                host_ephemeral_ports: (32768, 39999),
+                enclave_ephemeral_ports,
+                enclave_ports: vec![(80, 80)],
+                ..Default::default()
+            };
+
+            assert_invalid_config(cfg, "host and enclave ephemeral ports overlap");
+        }
+    }
+
+    #[test]
+    fn ensure_no_port_overlaps_rejects_enclave_service_ports_overlapping_host_ephemeral_ports() {
+        for enclave_ports in [
+            vec![(32768, 32768)],
+            vec![(32767, 32768)],
+            vec![(33000, 34000)],
+            vec![(39999, 40000)],
+            vec![(80, 80), (39999, 39999)],
+        ] {
+            let cfg = CliHost {
+                host_ephemeral_ports: (32768, 39999),
+                enclave_ephemeral_ports: (40000, 60999),
+                enclave_ports,
+                ..Default::default()
+            };
+
+            assert_invalid_config(cfg, "enclave service ports overlap with host ephemeral ports");
+        }
+    }
+}
