@@ -235,3 +235,65 @@ fn ipv4_total_len(header: &[u8; 20]) -> Result<(usize, Protocol), Error> {
 
     Ok((packet_len, protocol))
 }
+
+// Tests ---------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn ipv4_header(total_len: u16, protocol: u8) -> [u8; 20] {
+        let mut header = [0; 20];
+        header[0] = 0x45;
+        header[2..4].copy_from_slice(&total_len.to_be_bytes());
+        header[9] = protocol;
+        header
+    }
+
+    fn assert_invalid_ipv4_packet(header: [u8; 20]) {
+        let Err(Error::GlycerineRuntime(message)) = ipv4_total_len(&header) else {
+            panic!("expected invalid ipv4 packet error");
+        };
+
+        assert_eq!(message, "invalid ipv4 packet");
+    }
+
+    #[test]
+    fn ipv4_total_len_returns_packet_len_and_protocol() {
+        let header = ipv4_header(60, 6);
+
+        assert_eq!(ipv4_total_len(&header).unwrap(), (60, Protocol::TCP));
+    }
+
+    #[test]
+    fn ipv4_total_len_accepts_extended_header_len() {
+        let mut header = ipv4_header(60, 17);
+        header[0] = 0x4f;
+
+        assert_eq!(ipv4_total_len(&header).unwrap(), (60, Protocol::UDP));
+    }
+
+    #[test]
+    fn ipv4_total_len_rejects_non_ipv4_packet() {
+        let mut header = ipv4_header(60, 6);
+        header[0] = 0x65;
+
+        assert_invalid_ipv4_packet(header);
+    }
+
+    #[test]
+    fn ipv4_total_len_rejects_short_header_len() {
+        let mut header = ipv4_header(60, 6);
+        header[0] = 0x44;
+
+        assert_invalid_ipv4_packet(header);
+    }
+
+    #[test]
+    fn ipv4_total_len_rejects_packet_len_shorter_than_header_len() {
+        let mut header = ipv4_header(20, 6);
+        header[0] = 0x46;
+
+        assert_invalid_ipv4_packet(header);
+    }
+}

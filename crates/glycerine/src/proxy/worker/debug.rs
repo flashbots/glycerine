@@ -306,7 +306,7 @@ const TCPOPT_SACK_PERMITTED: u8 = 4;
 const TCPOPT_SACK: u8 = 5;
 const TCPOPT_TIMESTAMP: u8 = 8;
 
-// Tests ----------------------------------------------------------------
+// Tests ---------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {
