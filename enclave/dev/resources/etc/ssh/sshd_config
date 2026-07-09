@@ -1,0 +1,24 @@
+Port 10022
+ListenAddress 0.0.0.0
+
+HostKey /etc/ssh/ssh_host_ed25519_key
+HostKey /etc/ssh/ssh_host_rsa_key
+
+PermitRootLogin prohibit-password
+PubkeyAuthentication yes
+AuthorizedKeysFile /root/.ssh/authorized_keys
+PasswordAuthentication no
+PermitEmptyPasswords no
+KbdInteractiveAuthentication no
+UsePAM no
+
+AllowUsers root
+PidFile /run/sshd.pid
+UseDNS no
+PrintMotd no
+X11Forwarding no
+AllowTcpForwarding yes
+ClientAliveInterval 30
+ClientAliveCountMax 3
+LogLevel VERBOSE
+Subsystem sftp internal-sftp

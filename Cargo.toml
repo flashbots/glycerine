@@ -1,0 +1,15 @@
+[workspace]
+resolver = "3"
+
+members = [
+  "crates/glycerine",
+]
+
+[workspace.lints.rust]
+unreachable_pub = "deny"
+
+[workspace.lints.clippy]
+manual_let_else = "warn"
+match_same_arms = "warn"
+uninlined_format_args = "warn"
+unused_async = "warn"
