@@ -91,6 +91,7 @@ pub async fn run(
         let proxy = NfqToVsock::new(
             NfqToVsockConfig {
                 netfilter_queue_num: cfg.egress_netfilter_queue_num,
+                netfilter_queue_max_len: cfg.egress_netfilter_queue_max_len,
                 forward_address: cfg.egress_vsock_address.clone(),
             },
             backoff.clone(),

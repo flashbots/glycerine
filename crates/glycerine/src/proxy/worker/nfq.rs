@@ -22,6 +22,7 @@ const SERVICE: &str = "nfq->vsock";
 
 pub struct NfqToVsockConfig {
     pub netfilter_queue_num: u16,
+    pub netfilter_queue_max_len: u32,
     pub forward_address: socket2::SockAddr,
 }
 
@@ -42,6 +43,7 @@ impl NfqToVsock {
             new_queue_with_backoff(
                 SERVICE,
                 self.cfg.netfilter_queue_num,
+                self.cfg.netfilter_queue_max_len,
                 shutdown_signal.clone(),
                 self.backoff.clone(),
             )

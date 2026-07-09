@@ -66,6 +66,17 @@ pub struct CliEnclave {
     )]
     pub(crate) egress_netfilter_queue_num: u16,
 
+    /// max length for egress netfilter queue
+    #[arg(
+        default_value = "16384",
+        env = format!("{ENV}_EGRESS_NETFILTER_QUEUE_MAX_LEN"),
+        help_heading = "egress",
+        long("egress_netfilter-queue-max-len"),
+        name("egress_netfilter_queue_max_len"),
+        value_name = "number",
+    )]
+    pub(crate) egress_netfilter_queue_max_len: u32,
+
     /// vsock address to send the egress IP packets from an enclave to
     ///
     /// proxy will be sending packets received from netfilter queue to this

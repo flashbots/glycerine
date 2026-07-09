@@ -221,7 +221,11 @@ pub(crate) fn add_egress_netfilter_packets_sink(
     send_and_process(&ruleset).map_err(Error::IoNftnl).map(|_| true) // such table didn't exist => added
 }
 
-pub(crate) fn new_queue(service: &'static str, queue_num: u16) -> Result<Queue, Error> {
+pub(crate) fn new_queue(
+    service: &'static str,
+    queue_num: u16,
+    queue_max_len: u32,
+) -> Result<Queue, Error> {
     debug!(service = service, queue_num = queue_num, "Subscribing to netfilter queue...");
 
     let mut queue = Queue::open()
@@ -234,8 +238,6 @@ pub(crate) fn new_queue(service: &'static str, queue_num: u16) -> Result<Queue, 
             )
         })
         .map_err(Error::IoNfq)?;
-
-    // TODO: check if we need to set queue.set_queue_max_len
 
     queue
         .bind(queue_num)
@@ -251,12 +253,33 @@ pub(crate) fn new_queue(service: &'static str, queue_num: u16) -> Result<Queue, 
 
     queue
         .set_recv_enobufs(true)
+        .inspect(|_| debug!(service = service, queue_num = queue_num, "Enabled ENOBUFS reporting"))
         .inspect_err(|err| {
             warn!(
                 error = &err.to_string(),
                 service = service,
                 queue_num = queue_num,
                 "Failed to enable ENOBUFS reporting"
+            )
+        })
+        .map_err(Error::IoNfq)?;
+
+    queue
+        .set_queue_max_len(queue_num, queue_max_len)
+        .inspect(|_| {
+            debug!(
+                service = service,
+                queue_num = queue_num,
+                queue_max_len = queue_max_len,
+                "Set max netfilter queue length"
+            )
+        })
+        .inspect_err(|err| {
+            warn!(
+                error = &err.to_string(),
+                service = service,
+                queue_num = queue_num,
+                "Failed to set max netfilter queue length"
             )
         })
         .map_err(Error::IoNfq)?;
@@ -269,6 +292,7 @@ pub(crate) fn new_queue(service: &'static str, queue_num: u16) -> Result<Queue, 
 pub(crate) fn new_queue_with_backoff(
     service: &'static str,
     queue_num: u16,
+    queue_max_len: u32,
     shutdown_signal: CancellationToken,
     backoff: ExponentialBackoff,
 ) -> Result<Queue, Error> {
@@ -276,7 +300,7 @@ pub(crate) fn new_queue_with_backoff(
         if shutdown_signal.is_cancelled() {
             return Err(backoff::Error::permanent(Error::GlycerineShutdown));
         }
-        new_queue(service, queue_num).map_err(
+        new_queue(service, queue_num, queue_max_len).map_err(
             backoff::Error::transient, // TODO: classify errors?
         )
     })

@@ -116,6 +116,12 @@ ingress:
 
           [env: GLYCERINE_INGRESS_NETFILTER_QUEUE=]
 
+      --ingress_netfilter-queue-max-len <number>
+          max length for ingress netfilter queue
+
+          [env: GLYCERINE_INGRESS_NETFILTER_QUEUE_MAX_LEN=]
+          [default: 16384]
+
       --ingress-vsock-address <enclave-cid:port>
           vsock address to use for ingress
 
@@ -197,6 +203,12 @@ egress:
           received this way to the vsock connection with the host vm
 
           [env: GLYCERINE_EGRESS_NETFILTER_QUEUE=]
+
+      --egress_netfilter-queue-max-len <number>
+          max length for egress netfilter queue
+
+          [env: GLYCERINE_EGRESS_NETFILTER_QUEUE_MAX_LEN=]
+          [default: 16384]
 
       --egress-vsock-address <host-cid:port>
           vsock address to send the egress IP packets from an enclave to

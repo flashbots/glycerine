@@ -111,6 +111,17 @@ pub struct CliHost {
     )]
     pub(crate) ingress_netfilter_queue_num: u16,
 
+    /// max length for ingress netfilter queue
+    #[arg(
+        default_value = "16384",
+        env = format!("{ENV}_INGRESS_NETFILTER_QUEUE_MAX_LEN"),
+        help_heading = "ingress",
+        long("ingress_netfilter-queue-max-len"),
+        name("ingress_netfilter_queue_max_len"),
+        value_name = "number",
+    )]
+    pub(crate) ingress_netfilter_queue_max_len: u32,
+
     /// vsock address to use for ingress
     ///
     /// proxy will be sending packets received from netfilter queue to this
@@ -166,6 +177,7 @@ impl Default for CliHost {
             bootstrap_vsock_address: socket2::SockAddr::vsock(3, 4000),
             setup_only: false,
             ingress_netfilter_queue_num: 0,
+            ingress_netfilter_queue_max_len: 16384,
             ingress_vsock_address: socket2::SockAddr::vsock(4, 8000),
             egress_vsock_address: socket2::SockAddr::vsock(3, 8000),
             egress_ipv4_sink_address: SockAddr::from(net::SocketAddr::from((
