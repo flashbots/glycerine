@@ -41,7 +41,7 @@ pub(crate) async fn ensure_default_ipv4_route(
         .try_next()
         .await
         .map_err(Error::Rtnetlink)?
-        .ok_or(Error::GlycerineUnknownInterface)?
+        .ok_or(Error::GlycerineInvalidConfig("unknown interface"))?
         .header
         .index;
 
@@ -105,7 +105,7 @@ pub(crate) async fn add_ipv4_interface_address(
         .try_next()
         .await
         .map_err(Error::Rtnetlink)?
-        .ok_or(Error::GlycerineUnknownInterface)?
+        .ok_or(Error::GlycerineInvalidConfig("unknown interface"))?
         .header
         .index;
 

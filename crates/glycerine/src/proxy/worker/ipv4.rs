@@ -217,18 +217,18 @@ impl VsockToIpv4 {
 
 fn ipv4_total_len(header: &[u8; 20]) -> Result<(usize, Protocol), Error> {
     if header[0] >> 4 != 4 {
-        return Err(Error::GlycerineInvalidIpv4Packet);
+        return Err(Error::GlycerineRuntime("invalid ipv4 packet"));
     }
 
     let header_len = 4 * (header[0] & 0x0f) as usize;
     if header_len < 20 {
-        return Err(Error::GlycerineInvalidIpv4Packet);
+        return Err(Error::GlycerineRuntime("invalid ipv4 packet"));
     }
 
     let packet_len =
         u16::from_be_bytes(header[2..4].try_into().expect("must always convert")) as usize;
     if packet_len < header_len || MAX_PACKET_SIZE < packet_len {
-        return Err(Error::GlycerineInvalidIpv4Packet);
+        return Err(Error::GlycerineRuntime("invalid ipv4 packet"));
     }
 
     let protocol = Protocol::from(header[9] as i32);

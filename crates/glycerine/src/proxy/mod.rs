@@ -12,17 +12,14 @@ pub enum Error {
     #[error("cstring-nul-error: {0}")]
     CStringNulError(#[source] std::ffi::NulError),
 
-    #[error("glycerine: invalid ipv4 packet")]
-    GlycerineInvalidIpv4Packet,
+    #[error("glycerine: invalid config: {0}")]
+    GlycerineInvalidConfig(&'static str),
+
+    #[error("glycerine: runtime error: {0}")]
+    GlycerineRuntime(&'static str),
 
     #[error("glycerine: shutdown")]
     GlycerineShutdown,
-
-    #[error("glycerine: unexpected peer cid")]
-    GlycerineUnexpectedCid,
-
-    #[error("glycerine: unknown interface")]
-    GlycerineUnknownInterface,
 
     #[error("io-ipv4-tcp: {0}")]
     IoIpv4Tcp(#[source] std::io::Error),

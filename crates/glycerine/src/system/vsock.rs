@@ -51,7 +51,7 @@ pub(crate) fn accept_connection(
             "Rejecting connection attempt from unexpected CID"
         );
         let _ = connection_socket.shutdown(std::net::Shutdown::Both);
-        return Err(Error::GlycerineUnexpectedCid);
+        return Err(Error::GlycerineInvalidConfig("unexpected cid"));
     }
 
     info!(

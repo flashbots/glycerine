@@ -99,6 +99,8 @@ pub async fn run(
 }
 
 async fn setup(cfg: &CliHost) -> Result<(), Error> {
+    ensure_no_port_overlaps(cfg)?;
+
     set_ephemeral_ports(cfg.host_ephemeral_ports.0, cfg.host_ephemeral_ports.1)
         .inspect(|set| {
             if *set {
@@ -169,6 +171,28 @@ async fn setup(cfg: &CliHost) -> Result<(), Error> {
                 "Failed to configure netfilter queue ruleset",
             );
         })?;
+    }
+
+    Ok(())
+}
+
+fn ensure_no_port_overlaps(cfg: &CliHost) -> Result<(), Error> {
+    let host_ephemeral_ports = cfg.host_ephemeral_ports.0..=cfg.host_ephemeral_ports.1;
+
+    if host_ephemeral_ports.contains(&cfg.enclave_ephemeral_ports.0) ||
+        host_ephemeral_ports.contains(&cfg.enclave_ephemeral_ports.1)
+    {
+        return Err(Error::GlycerineInvalidConfig("host and enclave ephemeral ports overlap"));
+    }
+
+    if cfg
+        .enclave_ports
+        .iter()
+        .any(|(from, to)| host_ephemeral_ports.contains(from) || host_ephemeral_ports.contains(to))
+    {
+        return Err(Error::GlycerineInvalidConfig(
+            "enclave service ports overlap with host ephemeral ports",
+        ));
     }
 
     Ok(())
